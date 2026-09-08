@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Kaizen Barbershop">
+  <rect width="64" height="64" fill="#070706"/>
+  <rect x="14" y="12" width="8" height="40" fill="#c6a572"/>
+  <path fill="#c6a572" d="M29 32.3 50.4 12h6.6L33.6 32.3 57 52h-6.8L29 32.3Z"/>
+</svg>
