@@ -84,24 +84,17 @@ function InstagramIcon() {
 }
 
 export function Navbar() {
-  const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
   const active = useActiveSection()
   const menuId = useId()
   const closeRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24)
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
     const onResize = () => {
       if (window.innerWidth >= 1024) setOpen(false)
     }
     window.addEventListener('resize', onResize)
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onResize)
-    }
+    return () => window.removeEventListener('resize', onResize)
   }, [])
 
   useEffect(() => {
@@ -123,7 +116,7 @@ export function Navbar() {
 
   return (
     <>
-      <header className={`site-header ${scrolled ? 'is-scrolled' : ''}`}>
+      <header className="site-header">
         <div className="nav-shell">
           <Logo />
           <nav className="nav-links" aria-label="Primary">

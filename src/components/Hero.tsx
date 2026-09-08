@@ -4,7 +4,6 @@ import { BookButton } from './BookButton'
 
 export function Hero() {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const mediaRef = useRef<HTMLDivElement>(null)
   const copyRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -26,7 +25,6 @@ export function Hero() {
   }, [])
 
   useEffect(() => {
-    const mediaLayer = mediaRef.current
     const copy = copyRef.current
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)')
     let frame = 0
@@ -34,7 +32,6 @@ export function Hero() {
     const update = () => {
       const y = window.scrollY
       if (reduce.matches) {
-        if (mediaLayer) mediaLayer.style.transform = ''
         if (copy) {
           copy.style.transform = ''
           copy.style.opacity = ''
@@ -42,9 +39,6 @@ export function Hero() {
         return
       }
 
-      if (mediaLayer) {
-        mediaLayer.style.transform = `translate3d(0, ${y * 0.28}px, 0)`
-      }
       if (copy) {
         copy.style.transform = `translate3d(0, ${y * 0.12}px, 0)`
         copy.style.opacity = String(Math.max(0, 1 - y / 560))
@@ -66,7 +60,7 @@ export function Hero() {
 
   return (
     <section id="home" className="hero" aria-label="Introduction">
-      <div className="hero-media" ref={mediaRef}>
+      <div className="hero-media">
         <video
           ref={videoRef}
           autoPlay

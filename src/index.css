@@ -265,16 +265,11 @@ h3,
   position: sticky;
   top: 0;
   z-index: 50;
-  transition:
-    background-color 200ms ease,
-    border-color 200ms ease,
-    backdrop-filter 200ms ease;
-}
-
-.site-header.is-scrolled {
-  background: rgb(7 7 6 / 0.88);
+  isolation: isolate;
+  background: #070706;
   border-bottom: 1px solid rgb(198 165 114 / 0.12);
-  backdrop-filter: blur(16px);
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 .nav-shell {
@@ -297,7 +292,6 @@ h3,
 .logo img {
   display: block;
   width: auto;
-  mix-blend-mode: screen;
 }
 
 .logo-nav .logo-mark {
@@ -449,10 +443,13 @@ h3,
 
 .hero {
   position: relative;
+  z-index: 0;
   min-height: 100svh;
   display: grid;
   align-items: end;
-  overflow: hidden;
+  overflow: clip;
+  isolation: isolate;
+  contain: paint;
 }
 
 .hero-media,
@@ -466,9 +463,8 @@ h3,
 }
 
 .hero-media {
-  inset: -12% 0 -8%;
-  height: 124%;
-  will-change: transform;
+  inset: 0;
+  height: 100%;
 }
 
 .hero-media video {
@@ -631,8 +627,6 @@ h3,
     radial-gradient(circle at 50% 28%, rgb(198 165 114 / 0.12), transparent 46%),
     #141311;
   cursor: zoom-in;
-  transform: rotate(var(--tilt));
-  transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 280ms ease;
 }
 
 .gallery-item.frame-a { grid-area: a; min-height: 24rem; }
@@ -648,34 +642,12 @@ h3,
 .gallery-item video {
   position: absolute;
   inset: 0;
+  z-index: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: saturate(0.84) contrast(1.06) brightness(0.88);
-  transform: scale(1.08);
-  transition:
-    transform 1.15s cubic-bezier(0.16, 1, 0.3, 1),
-    filter 500ms ease,
-    opacity 400ms ease;
-  opacity: 0;
-}
-
-.gallery-item.is-ready video {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.gallery-item:hover,
-.gallery-item:focus-visible {
-  z-index: 5;
-  transform: rotate(var(--tilt)) scale(1.025);
-  box-shadow: 0 22px 48px rgb(0 0 0 / 0.48);
-}
-
-.gallery-item:hover video,
-.gallery-item:focus-visible video {
-  transform: scale(1.05);
-  filter: saturate(0.94) contrast(1.08) brightness(0.96);
+  background: #141311;
+  pointer-events: none;
 }
 
 .gallery-prelabel {
@@ -693,6 +665,20 @@ h3,
 
 .gallery-item.is-ready .gallery-prelabel {
   opacity: 0;
+}
+
+@media (min-width: 768px) {
+  .gallery-item {
+    transform: rotate(var(--tilt));
+    transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 280ms ease;
+  }
+
+  .gallery-item:hover,
+  .gallery-item:focus-visible {
+    z-index: 5;
+    transform: rotate(var(--tilt)) scale(1.025);
+    box-shadow: 0 22px 48px rgb(0 0 0 / 0.48);
+  }
 }
 
 .gallery-prelabel strong {

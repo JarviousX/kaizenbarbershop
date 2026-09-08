@@ -13,37 +13,91 @@ function WorkClip({
   src,
   alt,
   caption,
-  playing,
+  paused,
   onOpen,
 }: {
   index: number
   src: string
   alt: string
   caption: string
-  playing: boolean
+  paused: boolean
   onOpen: () => void
 }) {
+  const nodeRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const [ready, setReady] = useState(false)
+  const [inView, setInView] = useState(true)
+
+  useEffect(() => {
+    const node = nodeRef.current
+    if (!node) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      { threshold: 0.12, rootMargin: '160px 0px' },
+    )
+
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     const video = videoRef.current
-    if (!video || !ready) return
+    if (!video) return
+
+    video.muted = true
+    video.defaultMuted = true
+    video.playsInline = true
+    video.setAttribute('playsinline', '')
+    video.setAttribute('webkit-playsinline', '')
+
+    const markReady = () => {
+      if (video.videoWidth > 0) setReady(true)
+    }
 
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (playing && !reduce) {
-      void video.play()
-    } else {
+    const shouldPlay = inView && !paused && !reduce
+
+    video.addEventListener('loadeddata', markReady)
+    video.addEventListener('playing', markReady)
+    markReady()
+
+    if (!shouldPlay) {
       video.pause()
+      return () => {
+        video.removeEventListener('loadeddata', markReady)
+        video.removeEventListener('playing', markReady)
+      }
     }
-  }, [playing, ready])
+
+    const play = () => {
+      void video.play().then(markReady).catch(() => undefined)
+    }
+
+    play()
+    video.addEventListener('canplay', play)
+
+    return () => {
+      video.removeEventListener('canplay', play)
+      video.removeEventListener('loadeddata', markReady)
+      video.removeEventListener('playing', markReady)
+    }
+  }, [inView, paused])
 
   return (
-    <button
-      type="button"
+    <div
+      ref={nodeRef}
+      role="button"
+      tabIndex={0}
       className={`gallery-item frame-${FRAMES[index] ?? 'a'} ${ready ? 'is-ready' : ''}`}
       data-gallery-item={index}
       onClick={onOpen}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onOpen()
+        }
+      }}
       aria-label={`Open ${caption} video`}
     >
       <video
@@ -52,44 +106,24 @@ function WorkClip({
         muted
         loop
         playsInline
-        preload="metadata"
+        autoPlay
+        preload="auto"
         aria-label={alt}
-        onLoadedData={() => setReady(true)}
+        onPlaying={() => setReady(true)}
         onError={() => setReady(false)}
       />
       <span className="gallery-prelabel" aria-hidden={ready}>
         <strong>{fileName(src)}</strong>
         <span>{caption}</span>
       </span>
-    </button>
+    </div>
   )
 }
 
 export function Gallery() {
   const [active, setActive] = useState<number | null>(null)
-  const [inView, setInView] = useState<Record<number, boolean>>({})
   const clips = site.gallery
   const current = active === null ? null : clips[active]
-
-  useEffect(() => {
-    const nodes = Array.from(document.querySelectorAll<HTMLElement>('[data-gallery-item]'))
-    const observer = new IntersectionObserver(
-      (entries) => {
-        setInView((value) => {
-          const next = { ...value }
-          entries.forEach((entry) => {
-            const index = Number(entry.target.getAttribute('data-gallery-item'))
-            next[index] = entry.isIntersecting
-          })
-          return next
-        })
-      },
-      { threshold: 0.45 },
-    )
-
-    nodes.forEach((node) => observer.observe(node))
-    return () => observer.disconnect()
-  }, [])
 
   useEffect(() => {
     if (active === null) return
@@ -127,7 +161,7 @@ export function Gallery() {
               src={clip.src}
               alt={clip.alt}
               caption={clip.caption}
-              playing={active === null && Boolean(inView[index])}
+              paused={active !== null}
               onOpen={() => setActive(index)}
             />
           ))}
@@ -168,8 +202,19 @@ export function Gallery() {
             key={current.src}
             src={current.src}
             autoPlay
+            muted
+            loop
             playsInline
             controls
+            preload="auto"
+            ref={(el) => {
+              if (!el) return
+              el.muted = true
+              el.playsInline = true
+              el.setAttribute('playsinline', '')
+              el.setAttribute('webkit-playsinline', '')
+              void el.play().catch(() => undefined)
+            }}
             onClick={(event) => event.stopPropagation()}
           />
           <button
